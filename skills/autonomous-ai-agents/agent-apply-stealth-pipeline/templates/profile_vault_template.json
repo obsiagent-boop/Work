@@ -1,0 +1,35 @@
+{
+  "personal": {
+    "full_name": "Candidate Full Name",
+    "first_name": "First",
+    "last_name": "Last",
+    "preferred_name": "Preferred",
+    "email": "user@example.com",
+    "phone": "+91-XXXXXXXXXX",
+    "location": "India (100% Remote Worldwide / US / EU)",
+    "timezone": "IST (UTC+5:30) with 4-hour US EST/PST overlap",
+    "linkedin": "https://www.linkedin.com/in/username",
+    "github": "https://github.com/username",
+    "portfolio": "https://github.com/username/project",
+    "work_authorization": {
+      "authorized_in_india": true,
+      "requires_us_visa_sponsorship": true,
+      "open_to_b2b_contract_c2c": true,
+      "open_to_global_eor_deel_remote": true
+    }
+  },
+  "precomputed_answers": {
+    "why_us": "Technical alignment with production engineering standards and autonomous systems.",
+    "greatest_strength": "First-principles engineering, rapid prototyping, and high-quality system architecture.",
+    "remote_work_experience": "4+ years asynchronous remote engineering across global time zones.",
+    "notice_period": "Immediate (0 to 15 days)",
+    "salary_expectations_usd": "$80,000 – $150,000 USD / year"
+  },
+  "stealth_anti_detection": {
+    "human_typing_delay_ms": [45, 120],
+    "random_cursor_jitter": true,
+    "headless_stealth_flags": true,
+    "user_agent_rotation": true,
+    "approval_required_before_final_submit": true
+  }
+}

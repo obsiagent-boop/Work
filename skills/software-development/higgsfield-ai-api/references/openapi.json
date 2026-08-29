@@ -1,0 +1,941 @@
+{
+    "info": {
+        "title": "Higgsfield API",
+        "version": "2.0.0",
+        "description": "Submit generation requests and retrieve their status and outputs."
+    },
+    "servers": [
+        {
+            "url": "https://api.higgsfield.ai"
+        }
+    ],
+    "x-mcp": {
+        "enabled": true
+    },
+    "paths": {
+        "/requests/{request_id}/status": {
+            "get": {
+                "summary": "Get request status",
+                "operationId": "get_request_status",
+                "parameters": [
+                    {
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Request Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current request state and output, when available.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API credentials.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request does not exist or belongs to another account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Requests"
+                ],
+                "description": "Retrieve the current state and output of a generation request."
+            }
+        },
+        "/requests/{request_id}/cancel": {
+            "post": {
+                "summary": "Cancel a queued request",
+                "operationId": "cancel_request",
+                "parameters": [
+                    {
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Request Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "The request was canceled."
+                    },
+                    "400": {
+                        "description": "The request has already started and can no longer be canceled.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API credentials.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request does not exist or belongs to another account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Requests"
+                ],
+                "description": "Cancel a request that has not started processing. A successful response has no body."
+            }
+        },
+        "/higgsfield-ai/dop/turbo": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "motions": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/MotionSchema"
+                                        },
+                                        "title": "Motions",
+                                        "default": null,
+                                        "maxItems": 2,
+                                        "minItems": 0
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "title": "First frame image",
+                                        "format": "uri"
+                                    },
+                                    "end_image_url": {
+                                        "type": "string",
+                                        "title": "Last frame image",
+                                        "format": "uri"
+                                    },
+                                    "enhance_prompt": {
+                                        "type": "boolean",
+                                        "title": "Enhance Prompt",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "prompt",
+                                    "image_url"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_dop_turbo",
+                "summary": "Create higgsfield-ai dop turbo",
+                "tags": [
+                    "Dop"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/dop/turbo`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/dop/lite": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "motions": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/MotionSchema"
+                                        },
+                                        "title": "Motions",
+                                        "default": null,
+                                        "maxItems": 2,
+                                        "minItems": 0
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "title": "First frame image",
+                                        "format": "uri"
+                                    },
+                                    "end_image_url": {
+                                        "type": "string",
+                                        "title": "Last frame image",
+                                        "format": "uri"
+                                    },
+                                    "enhance_prompt": {
+                                        "type": "boolean",
+                                        "title": "Enhance Prompt",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "prompt",
+                                    "image_url"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_dop_lite",
+                "summary": "Create higgsfield-ai dop lite",
+                "tags": [
+                    "Dop"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/dop/lite`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/dop/standard": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "motions": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/MotionSchema"
+                                        },
+                                        "title": "Motions",
+                                        "default": null,
+                                        "maxItems": 2,
+                                        "minItems": 0
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "title": "First frame image",
+                                        "format": "uri"
+                                    },
+                                    "end_image_url": {
+                                        "type": "string",
+                                        "title": "Last frame image",
+                                        "format": "uri"
+                                    },
+                                    "enhance_prompt": {
+                                        "type": "boolean",
+                                        "title": "Enhance Prompt",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "prompt",
+                                    "image_url"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_dop_standard",
+                "summary": "Create higgsfield-ai dop standard",
+                "tags": [
+                    "Dop"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/dop/standard`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/popcorn/auto": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "image_urls": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "title": "Reference image",
+                                            "format": "uri"
+                                        },
+                                        "title": "Image references",
+                                        "maxItems": 8,
+                                        "minItems": 0
+                                    },
+                                    "num_images": {
+                                        "type": "integer",
+                                        "title": "Output images count",
+                                        "default": 1,
+                                        "maximum": 8,
+                                        "minimum": 1
+                                    },
+                                    "resolution": {
+                                        "enum": [
+                                            "720p",
+                                            "1600p"
+                                        ],
+                                        "type": "string",
+                                        "title": "Quality",
+                                        "default": "720p"
+                                    },
+                                    "aspect_ratio": {
+                                        "enum": [
+                                            "1:1",
+                                            "4:3",
+                                            "3:4",
+                                            "3:2",
+                                            "2:3",
+                                            "16:9",
+                                            "9:16"
+                                        ],
+                                        "type": "string",
+                                        "title": "Aspect Ratio",
+                                        "default": "4:3"
+                                    }
+                                },
+                                "required": [
+                                    "prompt"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_popcorn_auto",
+                "summary": "Create higgsfield-ai popcorn auto",
+                "tags": [
+                    "Popcorn"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/popcorn/auto`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/soul/character": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "style_id": {
+                                        "type": "string",
+                                        "title": "Soul Style",
+                                        "format": "uuid",
+                                        "default": null
+                                    },
+                                    "batch_size": {
+                                        "enum": [
+                                            1,
+                                            4
+                                        ],
+                                        "type": "integer",
+                                        "title": "Result images",
+                                        "default": 1
+                                    },
+                                    "resolution": {
+                                        "enum": [
+                                            "720p",
+                                            "1080p"
+                                        ],
+                                        "type": "string",
+                                        "title": "Resolution",
+                                        "default": "720p"
+                                    },
+                                    "aspect_ratio": {
+                                        "enum": [
+                                            "9:16",
+                                            "16:9",
+                                            "4:3",
+                                            "3:4",
+                                            "1:1",
+                                            "2:3",
+                                            "3:2"
+                                        ],
+                                        "type": "string",
+                                        "title": "Aspect Ratio",
+                                        "default": "4:3"
+                                    },
+                                    "enhance_prompt": {
+                                        "type": "boolean",
+                                        "title": "Enhance Prompt",
+                                        "default": true
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "title": "Source image",
+                                        "format": "uri"
+                                    },
+                                    "end_image_url": {
+                                        "type": "string",
+                                        "title": "Target image",
+                                        "format": "uri"
+                                    }
+                                },
+                                "required": [
+                                    "prompt",
+                                    "image_url"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_soul_character",
+                "summary": "Create higgsfield-ai soul character",
+                "tags": [
+                    "Soul"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/soul/character`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/soul/image-to-video": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt",
+                                        "default": ""
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "title": "Source image",
+                                        "format": "uri"
+                                    },
+                                    "end_image_url": {
+                                        "type": "string",
+                                        "title": "Target image",
+                                        "format": "uri"
+                                    }
+                                },
+                                "required": [
+                                    "image_url"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_soul_image_to_video",
+                "summary": "Create higgsfield-ai soul image-to-video",
+                "tags": [
+                    "Soul"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/soul/image-to-video`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/soul/standard": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    },
+                                    "style_id": {
+                                        "type": "string",
+                                        "title": "Soul Style",
+                                        "format": "uuid",
+                                        "default": null
+                                    },
+                                    "batch_size": {
+                                        "enum": [
+                                            1,
+                                            4
+                                        ],
+                                        "type": "integer",
+                                        "title": "Result images",
+                                        "default": 1
+                                    },
+                                    "resolution": {
+                                        "enum": [
+                                            "720p",
+                                            "1080p"
+                                        ],
+                                        "type": "string",
+                                        "title": "Resolution",
+                                        "default": "720p"
+                                    },
+                                    "aspect_ratio": {
+                                        "enum": [
+                                            "9:16",
+                                            "16:9",
+                                            "4:3",
+                                            "3:4",
+                                            "1:1",
+                                            "2:3",
+                                            "3:2"
+                                        ],
+                                        "type": "string",
+                                        "title": "Aspect Ratio",
+                                        "default": "4:3"
+                                    },
+                                    "enhance_prompt": {
+                                        "type": "boolean",
+                                        "title": "Enhance Prompt",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "prompt"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_soul_standard",
+                "summary": "Create higgsfield-ai soul standard",
+                "tags": [
+                    "Soul"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/soul/standard`. The response includes request metadata for status tracking and cancellation."
+            }
+        },
+        "/higgsfield-ai/soul/styles": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Style"
+                                    },
+                                    "title": "Response Get Higgsfield Ai Soul Styles"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get_higgsfield_ai_soul_styles",
+                "summary": "Get higgsfield-ai soul styles",
+                "tags": [
+                    "Soul"
+                ]
+            }
+        },
+        "/higgsfield-ai/soul/text-to-video": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seed": {
+                                        "type": "integer",
+                                        "title": "Seed",
+                                        "default": null,
+                                        "maximum": 1000000,
+                                        "minimum": 1
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "title": "Prompt"
+                                    }
+                                },
+                                "required": [
+                                    "prompt"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "post_higgsfield_ai_soul_text_to_video",
+                "summary": "Create higgsfield-ai soul text-to-video",
+                "tags": [
+                    "Soul"
+                ],
+                "description": "Submit an asynchronous generation request to `/higgsfield-ai/soul/text-to-video`. The response includes request metadata for status tracking and cancellation."
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "MotionSchema": {
+                "type": "object",
+                "properties": {
+                    "angle": {
+                        "enum": [
+                            0,
+                            90,
+                            180,
+                            270
+                        ],
+                        "type": "integer",
+                        "title": "Angle"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt"
+                    },
+                    "zoom_factor": {
+                        "type": "number",
+                        "title": "Zoom factor"
+                    }
+                },
+                "required": [
+                    "angle",
+                    "prompt",
+                    "zoom_factor"
+                ]
+            },
+            "Style": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt"
+                    },
+                    "is_custom": {
+                        "type": "boolean",
+                        "title": "Is Custom"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "prompt",
+                    "is_custom"
+                ]
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "title": "Code"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "$ref": "#/components/schemas/Error"
+                    }
+                },
+                "required": [
+                    "error"
+                ]
+            },
+            "OutputImage": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "format": "uuid"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "Url",
+                        "format": "uri"
+                    }
+                },
+                "required": [
+                    "id",
+                    "url"
+                ]
+            },
+            "OutputVideo": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "format": "uuid"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "Url",
+                        "format": "uri"
+                    }
+                },
+                "required": [
+                    "id",
+                    "url"
+                ]
+            },
+            "RequestStatus": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "enum": [
+                            "queued",
+                            "in_progress",
+                            "completed",
+                            "failed",
+                            "canceled",
+                            "nsfw"
+                        ],
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OutputImage"
+                        },
+                        "title": "Images"
+                    },
+                    "video": {
+                        "$ref": "#/components/schemas/OutputVideo"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/Error"
+                    },
+                    "request_id": {
+                        "type": "string",
+                        "title": "Request Id",
+                        "format": "uuid"
+                    },
+                    "status_url": {
+                        "type": "string",
+                        "title": "Status Url",
+                        "format": "uri"
+                    },
+                    "cancel_url": {
+                        "type": "string",
+                        "title": "Cancel Url",
+                        "format": "uri"
+                    }
+                },
+                "required": [
+                    "status",
+                    "request_id",
+                    "status_url",
+                    "cancel_url"
+                ]
+            }
+        }
+    }
+}
