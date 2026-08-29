@@ -1,0 +1,1 @@
+# Blueprint: Transcription Engine (social-video-intelligence)\n\nThis directory contains the blueprint for the skill I use to transcribe YouTube and Instagram videos. This is not the core engine itself, but the complete workflow, documentation, and scripts that show **how** I use that capability.
